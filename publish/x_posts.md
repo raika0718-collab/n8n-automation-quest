@@ -14,7 +14,7 @@ Quest 2: OpenAIで要約・重要度判定
 Quest 3: Google Sheetsに保存
 Quest 4: 重要ニュースをDiscordへ通知
 
-無料: [GitHubリンク]
+無料: https://github.com/raika0718-collab/n8n-automation-quest
 
 #n8n #自動化 #AI
 ```
@@ -30,7 +30,7 @@ RSSを監視してAIが重要度を判断、Discordに通知するn8nワーク�
 
 設定はOpenAI APIキーとGoogle Sheets、Discord Webhookだけ。
 
-GitHub: [リンク]
+GitHub: https://github.com/raika0718-collab/n8n-automation-quest
 
 #n8n #OpenAI #自動化
 ```
@@ -127,7 +127,7 @@ False → Sheetsのみ保存
 JSON1つをインポートするだけで動きます。
 IMPORT_GUIDEに手順を書きました。
 
-GitHub: [リンク]
+GitHub: https://github.com/raika0718-collab/n8n-automation-quest
 
 Quest 02は「AI動画ネタ収集システム」を予定。
 ```

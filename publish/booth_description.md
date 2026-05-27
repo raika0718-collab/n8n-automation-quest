@@ -53,7 +53,7 @@ Quest 4: Discord Webhookでギルドへ報告
 ・各自のAPIキーを設定してご使用ください
 ・OpenAI API利用料は別途発生します（目安: 1記事0.01〜0.05円）
 
-GitHub: [リンクをここに]
+GitHub: https://github.com/raika0718-collab/n8n-automation-quest
 ```
 
 ---

@@ -65,7 +65,7 @@ AI出力をGoogle Sheetsに記録します。Date / Title / Summary / Score / UR
 
 ## 無料配布しています
 
-**GitHub:** [リンクをここに]
+**GitHub:** https://github.com/raika0718-collab/n8n-automation-quest
 
 JSONファイルをダウンロードしてn8nにインポートするだけで使えます。
 IMPORT_GUIDE.mdにスクショ付きで手順を書いているので、n8n初心者でも動かせます。

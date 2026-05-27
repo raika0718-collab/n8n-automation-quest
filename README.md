@@ -85,4 +85,4 @@ MIT License — 自由に使用・改変・再配布できます。
 
 ## 作者
 
-[あなたのX/GitHub IDをここに]
+GitHub: https://github.com/raika0718-collab
