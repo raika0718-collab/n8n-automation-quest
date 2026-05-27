@@ -18,30 +18,26 @@
     },
     {
       "parameters": {
-        "resource": "chat",
-        "operation": "complete",
-        "model": {
+        "modelId": {
           "__rl": true,
           "value": "gpt-4o-mini",
-          "mode": "list"
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
         },
-        "messages": {
+        "responses": {
           "values": [
             {
-              "role": "system",
-              "content": "あなたは情報収集AIアシスタントです。ニュース記事を分析して要約と重要度評価を行います。"
-            },
-            {
-              "role": "user",
-              "content": "以下の記事を3行で要約してください。\nさらに、AI・自動化・テック分野の重要度を100点満点で評価してください。\n\nタイトル: {{ $json.title }}\n内容: {{ $json.contentSnippet }}\n\n出力形式（必ずこの形式で）:\n要約: [3行の要約]\n重要度: [数字のみ]"
+              "content": "=あなたは情報収集AIアシスタントです。ニュース記事を分析して要約と重要度評価を行います。\n\n以下の記事を3行で要約してください。\nさらに、AI・自動化・テック分野の重要度を100点満点で評価してください。\n\nタイトル: {{ $json.title }}\n内容: {{ $json.contentSnippet }}\n\n出力形式（必ずこの形式で）:\n要約: [3行の要約]\n重要度: [数字のみ]"
             }
           ]
-        }
+        },
+        "builtInTools": {},
+        "options": {}
       },
       "id": "openai-001",
       "name": "Quest 2: AI解析",
-      "type": "n8n-nodes-base.openai",
-      "typeVersion": 1,
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
       "position": [420, 300],
       "credentials": {
         "openAiApi": {
@@ -52,7 +48,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// AI出力を解析してスコアと要約を抽出する\nconst aiOutput = $input.item.json.message?.content || '';\nconst rssData = $('Quest 1: RSS接続').item.json;\n\nconst summaryMatch = aiOutput.match(/要約[:：]\\s*([\\s\\S]+?)(?=\\n重要度|$)/);\nconst scoreMatch = aiOutput.match(/重要度[:：]\\s*(\\d+)/);\n\nconst summary = summaryMatch ? summaryMatch[1].trim() : 'AIが要約を生成できませんでした';\nconst score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;\n\nreturn [{\n  json: {\n    date: new Date().toISOString(),\n    title: rssData.title || '(タイトルなし)',\n    summary: summary,\n    score: score,\n    url: rssData.link || rssData.url || '(URLなし)'\n  }\n}];"
+        "jsCode": "// AI出力を解析してスコアと要約を抽出する\nconst aiOutput = $input.item.json.output?.[0]?.content?.[0]?.text || '';\nconst rssData = $('Quest 1: RSS接続').item.json;\n\nconst summaryMatch = aiOutput.match(/要約[:：]\\s*([\\s\\S]+?)(?=\\n重要度|$)/);\nconst scoreMatch = aiOutput.match(/重要度[:：]\\s*(\\d+)/);\n\nconst summary = summaryMatch ? summaryMatch[1].trim() : 'AIが要約を生成できませんでした';\nconst score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;\n\nreturn [{\n  json: {\n    date: new Date().toISOString(),\n    title: rssData.title || '(タイトルなし)',\n    summary: summary,\n    score: score,\n    url: rssData.link || rssData.url || '(URLなし)'\n  }\n}];"
       },
       "id": "code-001",
       "name": "AI出力パース",
