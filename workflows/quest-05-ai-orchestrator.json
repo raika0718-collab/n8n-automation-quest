@@ -1,0 +1,198 @@
+{
+  "name": "Quest 05: AI Orchestrator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-05",
+      "name": "Quest 1: 司令部起動",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "f1", "name": "mission",  "value": "今日の重要ニュースと動画ネタを分析し、優先行動を提案せよ", "type": "string"},
+            {"id": "f2", "name": "date",     "value": "={{ $now.toISO() }}", "type": "string"},
+            {"id": "f3", "name": "mode",     "value": "daily_report",        "type": "string"}
+          ]
+        }
+      },
+      "id": "set-mission",
+      "name": "Quest 1: ミッション設定",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_QUEST01_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "options": {"waitForSubWorkflow": true}
+      },
+      "id": "exec-q01",
+      "name": "Quest 2: Worker01 起動 (ニュースAI)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [640, 180]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_QUEST02_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "options": {"waitForSubWorkflow": true}
+      },
+      "id": "exec-q02",
+      "name": "Quest 2: Worker02 起動 (動画AI)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [640, 420]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "merge-05",
+      "name": "Quest 2: AI Worker結果統合",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 全Workerの結果を集約してサマリーを作る\nconst all = $input.all();\nconst missionCtx = $('Quest 1: ミッション設定').item.json;\n\nconst newsItems  = all.filter(i => i.json.title && i.json.summary).slice(0, 3);\nconst videoItems = all.filter(i => i.json.video_title).slice(0, 3);\n\nconst newsSummary = newsItems.length\n  ? newsItems.map(i => `- [${i.json.score}点] ${i.json.title}`).join('\\n')\n  : '(データなし)';\n\nconst videoSummary = videoItems.length\n  ? videoItems.map(i => `- [${i.json.score}点] ${i.json.video_title} / フック: ${i.json.hook}`).join('\\n')\n  : '(データなし)';\n\nreturn [{\n  json: {\n    mission:       missionCtx.mission,\n    date:          missionCtx.date,\n    news_summary:  newsSummary,\n    video_summary: videoSummary,\n    total_items:   all.length\n  }\n}];"
+      },
+      "id": "code-agg",
+      "name": "結果集約",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": {"__rl": true, "value": "gpt-4o-mini", "mode": "list"},
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "あなたは自動化ギルドの司令AIです。情報を分析し、今日の優先行動を判断します。"
+            },
+            {
+              "role": "user",
+              "content": "=ミッション: {{ $json.mission }}\n日時: {{ $json.date }}\n\n=今日のニュース（スコア付き）=\n{{ $json.news_summary }}\n\n=今日の動画ネタ候補=\n{{ $json.video_summary }}\n\n以下を判断してください:\n1. 今日最も注目すべき情報は何か（1行）\n2. 今日優先して動かすべきworkflowはどれか（ニュースAI/動画AI/投稿AI/営業AI）\n3. 今週の推奨アクション（3行以内）\n\n出力形式（必ずこの形式で）:\n注目情報: [1行]\n優先workflow: [workflow名]\n推奨アクション:\n1. [アクション1]\n2. [アクション2]\n3. [アクション3]"
+            }
+          ]
+        }
+      },
+      "id": "openai-cmd",
+      "name": "Quest 3: 司令AI判断",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 1,
+      "position": [1300, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cmdOutput = $input.item.json.message?.content || '';\nconst agg       = $('結果集約').item.json;\n\nconst get = (label) => {\n  const m = cmdOutput.match(new RegExp(label + '[:：]\\\\s*([\\\\s\\\\S]+?)(?=\\\\n[^\\\\n]+[:：]|$)'));\n  return m ? m[1].trim() : '(取得失敗)';\n};\n\nconst topInfo   = get('注目情報');\nconst priority  = get('優先workflow');\nconst actions   = get('推奨アクション');\n\nconst report = [\n  '# AI帝国 日次司令レポート',\n  `日時: ${agg.date}`,\n  '',\n  '## 司令AIの判断',\n  `**注目情報:** ${topInfo}`,\n  `**優先workflow:** ${priority}`,\n  '',\n  '## 推奨アクション',\n  actions,\n  '',\n  '## 収集データサマリー',\n  '### 重要ニュース',\n  agg.news_summary,\n  '',\n  '### 動画ネタ候補',\n  agg.video_summary,\n  '',\n  `総収集件数: ${agg.total_items}件`\n].join('\\n');\n\nreturn [{\n  json: {\n    date:           agg.date,\n    top_info:       topInfo,\n    priority_wf:    priority,\n    actions:        actions,\n    full_report:    report,\n    total_items:    agg.total_items\n  }\n}];"
+      },
+      "id": "code-report",
+      "name": "Quest 3: 司令レポート生成",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1520, 300]
+    },
+    {
+      "parameters": {
+        "webhookUri": "REPLACE_WITH_YOUR_DISCORD_WEBHOOK_URL",
+        "content": "=**【AI帝国 日次レポート】**\n\n**注目情報:** {{ $json.top_info }}\n**今日の優先:** {{ $json.priority_wf }}\n\n**推奨アクション:**\n{{ $json.actions }}\n\n収集データ: {{ $json.total_items }}件",
+        "options": {"username": "AI司令部"}
+      },
+      "id": "discord-05",
+      "name": "Quest 5: Discord帝国報告",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [1740, 180]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {"__rl": true, "value": "REPLACE_WITH_YOUR_SPREADSHEET_ID", "mode": "id"},
+        "sheetName":  {"__rl": true, "value": "司令ログ", "mode": "name"},
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date":          "={{ $json.date }}",
+            "TopInfo":       "={{ $json.top_info }}",
+            "PriorityWF":    "={{ $json.priority_wf }}",
+            "Actions":       "={{ $json.actions }}",
+            "TotalItems":    "={{ $json.total_items }}",
+            "FullReport":    "={{ $json.full_report }}"
+          }
+        }
+      },
+      "id": "sheets-05",
+      "name": "Quest 4: 統合管理台帳保存",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [1740, 420],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Quest 1: 司令部起動": {
+      "main": [[{"node": "Quest 1: ミッション設定", "type": "main", "index": 0}]]
+    },
+    "Quest 1: ミッション設定": {
+      "main": [[
+        {"node": "Quest 2: Worker01 起動 (ニュースAI)", "type": "main", "index": 0},
+        {"node": "Quest 2: Worker02 起動 (動画AI)",     "type": "main", "index": 0}
+      ]]
+    },
+    "Quest 2: Worker01 起動 (ニュースAI)": {
+      "main": [[{"node": "Quest 2: AI Worker結果統合", "type": "main", "index": 0}]]
+    },
+    "Quest 2: Worker02 起動 (動画AI)": {
+      "main": [[{"node": "Quest 2: AI Worker結果統合", "type": "main", "index": 1}]]
+    },
+    "Quest 2: AI Worker結果統合": {
+      "main": [[{"node": "結果集約", "type": "main", "index": 0}]]
+    },
+    "結果集約": {
+      "main": [[{"node": "Quest 3: 司令AI判断", "type": "main", "index": 0}]]
+    },
+    "Quest 3: 司令AI判断": {
+      "main": [[{"node": "Quest 3: 司令レポート生成", "type": "main", "index": 0}]]
+    },
+    "Quest 3: 司令レポート生成": {
+      "main": [[
+        {"node": "Quest 5: Discord帝国報告",    "type": "main", "index": 0},
+        {"node": "Quest 4: 統合管理台帳保存",   "type": "main", "index": 0}
+      ]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "meta": {
+    "templateId": "automation-quest-05-ai-orchestrator",
+    "instanceId": "template-lab-sample"
+  }
+}

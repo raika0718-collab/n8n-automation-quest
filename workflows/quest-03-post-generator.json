@@ -1,0 +1,207 @@
+{
+  "name": "Quest 03: AI Post Generator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-03",
+      "name": "手動トリガー",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "f1", "name": "video_title", "value": "AIツールで副業収入を月10万にする方法",    "type": "string"},
+            {"id": "f2", "name": "hook",        "value": "99%の人が知らないAI副業の始め方",        "type": "string"},
+            {"id": "f3", "name": "summary",     "value": "ChatGPTとn8nを使って自動化ビジネスを作る手順を解説します", "type": "string"},
+            {"id": "f4", "name": "target",      "value": "副業・AI・自動化に興味がある20〜30代",     "type": "string"}
+          ]
+        }
+      },
+      "id": "set-topic",
+      "name": "Quest 1: 動画ネタ入力",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": {"__rl": true, "value": "gpt-4o-mini", "mode": "list"},
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "あなたはSNSマーケティングの専門家です。バズる投稿文を生成してください。"
+            },
+            {
+              "role": "user",
+              "content": "以下の動画ネタから、X（Twitter）投稿文を生成してください。\n\n【動画タイトル】{{ $json.video_title }}\n【フック】{{ $json.hook }}\n【概要】{{ $json.summary }}\n【対象】{{ $json.target }}\n\n条件:\n- 140文字以内\n- フックで始める\n- 最後にCTA（「詳しくはプロフから」等）\n- 絵文字を効果的に使用\n\n出力:\nX投稿文: [投稿文]"
+            }
+          ]
+        }
+      },
+      "id": "openai-x",
+      "name": "Quest 1: X投稿文生成",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 1,
+      "position": [640, 180],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": {"__rl": true, "value": "gpt-4o-mini", "mode": "list"},
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "あなたはYouTube SEO専門家です。検索されやすいタイトルと概要欄を生成してください。"
+            },
+            {
+              "role": "user",
+              "content": "以下の動画ネタから、YouTubeのタイトル案3つと概要欄を生成してください。\n\n【動画タイトル】{{ $('Quest 1: 動画ネタ入力').item.json.video_title }}\n【概要】{{ $('Quest 1: 動画ネタ入力').item.json.summary }}\n\n出力形式（必ずこの形式で）:\nYouTubeタイトル1: [タイトル]\nYouTubeタイトル2: [タイトル]\nYouTubeタイトル3: [タイトル]\nYouTube概要欄: [概要欄テキスト（300文字程度）]"
+            }
+          ]
+        }
+      },
+      "id": "openai-yt",
+      "name": "Quest 2: YouTubeタイトル生成",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 1,
+      "position": [640, 420],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": {"__rl": true, "value": "gpt-4o-mini", "mode": "list"},
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "あなたはハッシュタグ戦略の専門家です。"
+            },
+            {
+              "role": "user",
+              "content": "以下の動画ネタに最適なハッシュタグを生成してください。\n\n【動画タイトル】{{ $('Quest 1: 動画ネタ入力').item.json.video_title }}\n【対象】{{ $('Quest 1: 動画ネタ入力').item.json.target }}\n\n条件:\n- X用: 2〜3個（バズ重視）\n- YouTube用: 5〜7個（SEO重視）\n- TikTok用: 3〜5個（トレンド重視）\n\n出力形式（必ずこの形式で）:\nX用ハッシュタグ: #AI #副業 #自動化\nYouTube用ハッシュタグ: #AI #ChatGPT #副業 #自動化 #n8n\nTikTok用ハッシュタグ: #AIツール #副業 #テック"
+            }
+          ]
+        }
+      },
+      "id": "openai-hash",
+      "name": "Quest 3: ハッシュタグ最適化",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 1,
+      "position": [860, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const topic  = $('Quest 1: 動画ネタ入力').item.json;\nconst xOut   = $('Quest 1: X投稿文生成').item.json.message?.content || '';\nconst ytOut  = $('Quest 2: YouTubeタイトル生成').item.json.message?.content || '';\nconst hashOut = $input.item.json.message?.content || '';\n\nconst get = (text, label) => {\n  const m = text.match(new RegExp(label + '[:：]\\\\s*([\\\\s\\\\S]+?)(?=\\\\n[^\\\\n]+[:：]|$)'));\n  return m ? m[1].trim() : '(取得失敗)';\n};\n\nconst xPost      = get(xOut, 'X投稿文');\nconst ytTitle1   = get(ytOut, 'YouTubeタイトル1');\nconst ytTitle2   = get(ytOut, 'YouTubeタイトル2');\nconst ytTitle3   = get(ytOut, 'YouTubeタイトル3');\nconst ytDesc     = get(ytOut, 'YouTube概要欄');\nconst hashX      = get(hashOut, 'X用ハッシュタグ');\nconst hashYt     = get(hashOut, 'YouTube用ハッシュタグ');\nconst hashTt     = get(hashOut, 'TikTok用ハッシュタグ');\n\nconst markdown = [\n  `# ${topic.video_title}`,\n  '',\n  `> ${topic.hook}`,\n  '',\n  '## X投稿文',\n  xPost,\n  '',\n  '## YouTubeタイトル案',\n  `1. ${ytTitle1}`,\n  `2. ${ytTitle2}`,\n  `3. ${ytTitle3}`,\n  '',\n  '## YouTube概要欄',\n  ytDesc,\n  '',\n  '## ハッシュタグ',\n  `**X用:** ${hashX}`,\n  `**YouTube用:** ${hashYt}`,\n  `**TikTok用:** ${hashTt}`,\n  '',\n  `---`,\n  `生成日時: ${new Date().toISOString()}`\n].join('\\n');\n\nreturn [{\n  json: {\n    date:       new Date().toISOString(),\n    title:      topic.video_title,\n    hook:       topic.hook,\n    x_post:     xPost,\n    yt_title1:  ytTitle1,\n    yt_title2:  ytTitle2,\n    yt_title3:  ytTitle3,\n    yt_desc:    ytDesc,\n    hash_x:     hashX,\n    hash_yt:    hashYt,\n    hash_tiktok: hashTt,\n    markdown:   markdown\n  }\n}];"
+      },
+      "id": "code-format",
+      "name": "Quest 4: Markdown整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {"__rl": true, "value": "REPLACE_WITH_YOUR_SPREADSHEET_ID", "mode": "id"},
+        "sheetName":  {"__rl": true, "value": "投稿生成ログ", "mode": "name"},
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date":      "={{ $json.date }}",
+            "Title":     "={{ $json.title }}",
+            "X_Post":    "={{ $json.x_post }}",
+            "YT_Title1": "={{ $json.yt_title1 }}",
+            "Hash_X":    "={{ $json.hash_x }}",
+            "Hash_YT":   "={{ $json.hash_yt }}",
+            "Markdown":  "={{ $json.markdown }}"
+          }
+        }
+      },
+      "id": "sheets-03",
+      "name": "Quest 4: 量産台帳保存",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [1300, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "out1", "name": "output_markdown", "value": "={{ $json.markdown }}", "type": "string"},
+            {"id": "out2", "name": "status",           "value": "量産ライン完成",         "type": "string"}
+          ]
+        }
+      },
+      "id": "set-output",
+      "name": "Quest 5: 量産ライン完成",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1520, 300]
+    }
+  ],
+  "connections": {
+    "手動トリガー": {
+      "main": [[{"node": "Quest 1: 動画ネタ入力", "type": "main", "index": 0}]]
+    },
+    "Quest 1: 動画ネタ入力": {
+      "main": [[
+        {"node": "Quest 1: X投稿文生成",       "type": "main", "index": 0},
+        {"node": "Quest 2: YouTubeタイトル生成", "type": "main", "index": 0}
+      ]]
+    },
+    "Quest 1: X投稿文生成": {
+      "main": [[{"node": "Quest 3: ハッシュタグ最適化", "type": "main", "index": 0}]]
+    },
+    "Quest 2: YouTubeタイトル生成": {
+      "main": [[{"node": "Quest 3: ハッシュタグ最適化", "type": "main", "index": 0}]]
+    },
+    "Quest 3: ハッシュタグ最適化": {
+      "main": [[{"node": "Quest 4: Markdown整形", "type": "main", "index": 0}]]
+    },
+    "Quest 4: Markdown整形": {
+      "main": [[{"node": "Quest 4: 量産台帳保存", "type": "main", "index": 0}]]
+    },
+    "Quest 4: 量産台帳保存": {
+      "main": [[{"node": "Quest 5: 量産ライン完成", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "meta": {
+    "templateId": "automation-quest-03-post-generator",
+    "instanceId": "template-lab-sample"
+  }
+}

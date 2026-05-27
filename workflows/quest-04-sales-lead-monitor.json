@@ -1,0 +1,213 @@
+{
+  "name": "Quest 04: AI Sales Lead Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{"field": "hours", "hoursInterval": 6}]
+        }
+      },
+      "id": "schedule-04",
+      "name": "Quest 1: 市場巡回スケジューラ",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty&limitToFirst=20&orderBy=\"$key\"",
+        "options": {}
+      },
+      "id": "http-hn-ids",
+      "name": "Quest 2: HN新着取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// HNから最初の5件のIDを取得してリクエスト用に整形\nconst ids = $input.item.json;\nconst topIds = Array.isArray(ids) ? ids.slice(0, 5) : Object.values(ids).slice(0, 5);\n\nreturn topIds.map(id => ({ json: { story_id: id } }));"
+      },
+      "id": "code-ids",
+      "name": "ID抽出",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://hacker-news.firebaseio.com/v0/item/{{ $json.story_id }}.json?print=pretty",
+        "options": {}
+      },
+      "id": "http-hn-story",
+      "name": "Quest 2: ストーリー詳細取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "cond-type",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "story",
+              "operator": {"type": "string", "operation": "equals"}
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-story",
+      "name": "ストーリーのみフィルタ",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1080, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": {"__rl": true, "value": "gpt-4o-mini", "mode": "list"},
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "あなたはAI自動化コンサルタントです。企業やサービスのAI化ニーズを分析します。"
+            },
+            {
+              "role": "user",
+              "content": "以下の情報から、この企業/サービス/話題がAI自動化サービスを必要としている可能性を分析してください。\n\n【タイトル】{{ $json.title }}\n【URL】{{ $json.url }}\n【スコア】{{ $json.score }}ポイント\n\n評価基準:\n- 業務効率化の余地があるか\n- データ処理・分析のニーズがありそうか\n- 意思決定支援が役立ちそうか\n- 人手不足や反復作業が多そうか\n\n出力形式（必ずこの形式で）:\n需要スコア: [0〜100の数字]\n理由: [2行以内]\n提案できるAI: [1〜2行]"
+            }
+          ]
+        }
+      },
+      "id": "openai-04",
+      "name": "Quest 3: AI需要分析",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 1,
+      "position": [1300, 180],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const story  = $('Quest 2: ストーリー詳細取得').item.json;\nconst output = $input.item.json.message?.content || '';\n\nconst scoreMatch  = output.match(/需要スコア[:：]\\s*(\\d+)/);\nconst reasonMatch = output.match(/理由[:：]\\s*([\\s\\S]+?)(?=\\n提案|$)/);\nconst aiMatch     = output.match(/提案できるAI[:：]\\s*([\\s\\S]+)$/);\n\nreturn [{\n  json: {\n    date:         new Date().toISOString(),\n    title:        story.title || '(タイトルなし)',\n    url:          story.url   || `https://news.ycombinator.com/item?id=${story.id}`,\n    hn_score:     story.score || 0,\n    demand_score: parseInt((scoreMatch || [])[1] || '0', 10),\n    reason:       (reasonMatch || [])[1]?.trim() || '(取得失敗)',\n    ai_proposal:  (aiMatch    || [])[1]?.trim() || '(取得失敗)',\n    status:       '未接触'\n  }\n}];"
+      },
+      "id": "code-04",
+      "name": "スコア抽出",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1520, 180]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "cond-demand",
+              "leftValue":  "={{ $json.demand_score }}",
+              "rightValue": 70,
+              "operator": {"type": "number", "operation": "gte"}
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-04",
+      "name": "Quest 4: 見込み判定 (>=70)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1740, 180]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {"__rl": true, "value": "REPLACE_WITH_YOUR_SPREADSHEET_ID", "mode": "id"},
+        "sheetName":  {"__rl": true, "value": "営業台帳", "mode": "name"},
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date":         "={{ $json.date }}",
+            "Title":        "={{ $json.title }}",
+            "URL":          "={{ $json.url }}",
+            "HN_Score":     "={{ $json.hn_score }}",
+            "DemandScore":  "={{ $json.demand_score }}",
+            "Reason":       "={{ $json.reason }}",
+            "AI_Proposal":  "={{ $json.ai_proposal }}",
+            "Status":       "={{ $json.status }}"
+          }
+        }
+      },
+      "id": "sheets-04",
+      "name": "Quest 5: 営業台帳保存",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [1960, 60],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "webhookUri": "REPLACE_WITH_YOUR_DISCORD_WEBHOOK_URL",
+        "content": "=**【有望リード発見】** 需要スコア: {{ $json.demand_score }}/100\n\n**{{ $json.title }}**\n\n**理由:** {{ $json.reason }}\n**提案AI:** {{ $json.ai_proposal }}\n\n{{ $json.url }}",
+        "options": {"username": "営業偵察Bot"}
+      },
+      "id": "discord-04",
+      "name": "Discord通知",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [2180, 60]
+    }
+  ],
+  "connections": {
+    "Quest 1: 市場巡回スケジューラ": {
+      "main": [[{"node": "Quest 2: HN新着取得", "type": "main", "index": 0}]]
+    },
+    "Quest 2: HN新着取得": {
+      "main": [[{"node": "ID抽出", "type": "main", "index": 0}]]
+    },
+    "ID抽出": {
+      "main": [[{"node": "Quest 2: ストーリー詳細取得", "type": "main", "index": 0}]]
+    },
+    "Quest 2: ストーリー詳細取得": {
+      "main": [[{"node": "ストーリーのみフィルタ", "type": "main", "index": 0}]]
+    },
+    "ストーリーのみフィルタ": {
+      "main": [
+        [{"node": "Quest 3: AI需要分析", "type": "main", "index": 0}],
+        []
+      ]
+    },
+    "Quest 3: AI需要分析": {
+      "main": [[{"node": "スコア抽出", "type": "main", "index": 0}]]
+    },
+    "スコア抽出": {
+      "main": [[{"node": "Quest 4: 見込み判定 (>=70)", "type": "main", "index": 0}]]
+    },
+    "Quest 4: 見込み判定 (>=70)": {
+      "main": [
+        [{"node": "Quest 5: 営業台帳保存", "type": "main", "index": 0}],
+        []
+      ]
+    },
+    "Quest 5: 営業台帳保存": {
+      "main": [[{"node": "Discord通知", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "meta": {
+    "templateId": "automation-quest-04-sales-lead-monitor",
+    "instanceId": "template-lab-sample"
+  }
+}

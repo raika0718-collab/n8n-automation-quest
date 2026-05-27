@@ -66,14 +66,15 @@ n8n-automation-quest/
 
 ---
 
-## 次のクエスト（予告）
+## Quest Pack
 
-| Quest | テーマ |
-|-------|--------|
-| Quest 02 | AI動画ネタ収集システム |
-| Quest 03 | AI投稿自動生成システム |
-| Quest 04 | AI営業リード監視システム |
-| Quest 05 | AIエージェント司令システム |
+| Quest | テーマ | 難易度 | 新要素 |
+|-------|--------|--------|--------|
+| [01](workflows/quest-01-ai-news-monitor.json) | AIニュース監視システム | ★ | RSS / OpenAI / IF / Sheets / Discord |
+| [02](workflows/quest-02-video-topic-collector.json) | AI動画ネタ収集システム | ★★ | HTTP Request / Merge / Reddit API |
+| [03](workflows/quest-03-post-generator.json) | AI投稿生成工場 | ★★★ | 複数AI連鎖 / Markdown生成 |
+| [04](workflows/quest-04-sales-lead-monitor.json) | AI営業リード監視 | ★★★★ | Schedule / HTTP連鎖 / CRM |
+| [05](workflows/quest-05-ai-orchestrator.json) | AI司令システム | ★★★★★ | Execute Workflow / AI Routing |
 
 ---
 
