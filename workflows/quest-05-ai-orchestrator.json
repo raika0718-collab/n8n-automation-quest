@@ -77,26 +77,26 @@
     },
     {
       "parameters": {
-        "resource": "chat",
-        "operation": "complete",
-        "model": {"__rl": true, "value": "gpt-4o-mini", "mode": "list"},
-        "messages": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
           "values": [
             {
-              "role": "system",
-              "content": "あなたは自動化ギルドの司令AIです。情報を分析し、今日の優先行動を判断します。"
-            },
-            {
-              "role": "user",
-              "content": "=ミッション: {{ $json.mission }}\n日時: {{ $json.date }}\n\n=今日のニュース（スコア付き）=\n{{ $json.news_summary }}\n\n=今日の動画ネタ候補=\n{{ $json.video_summary }}\n\n以下を判断してください:\n1. 今日最も注目すべき情報は何か（1行）\n2. 今日優先して動かすべきworkflowはどれか（ニュースAI/動画AI/投稿AI/営業AI）\n3. 今週の推奨アクション（3行以内）\n\n出力形式（必ずこの形式で）:\n注目情報: [1行]\n優先workflow: [workflow名]\n推奨アクション:\n1. [アクション1]\n2. [アクション2]\n3. [アクション3]"
+              "content": "=あなたは自動化ギルドの司令AIです。情報を分析し、今日の優先行動を判断します。\n\nミッション: {{ $json.mission }}\n日時: {{ $json.date }}\n\n=今日のニュース（スコア付き）=\n{{ $json.news_summary }}\n\n=今日の動画ネタ候補=\n{{ $json.video_summary }}\n\n以下を判断してください:\n1. 今日最も注目すべき情報は何か（1行）\n2. 今日優先して動かすべきworkflowはどれか（ニュースAI/動画AI/投稿AI/営業AI）\n3. 今週の推奨アクション（3行以内）\n\n出力形式（必ずこの形式で）:\n注目情報: [1行]\n優先workflow: [workflow名]\n推奨アクション:\n1. [アクション1]\n2. [アクション2]\n3. [アクション3]"
             }
           ]
-        }
+        },
+        "builtInTools": {},
+        "options": {}
       },
       "id": "openai-cmd",
       "name": "Quest 3: 司令AI判断",
-      "type": "n8n-nodes-base.openai",
-      "typeVersion": 1,
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
       "position": [1300, 300],
       "credentials": {
         "openAiApi": {
@@ -107,7 +107,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cmdOutput = $input.item.json.message?.content || '';\nconst agg       = $('結果集約').item.json;\n\nconst get = (label) => {\n  const m = cmdOutput.match(new RegExp(label + '[:：]\\\\s*([\\\\s\\\\S]+?)(?=\\\\n[^\\\\n]+[:：]|$)'));\n  return m ? m[1].trim() : '(取得失敗)';\n};\n\nconst topInfo   = get('注目情報');\nconst priority  = get('優先workflow');\nconst actions   = get('推奨アクション');\n\nconst report = [\n  '# AI帝国 日次司令レポート',\n  `日時: ${agg.date}`,\n  '',\n  '## 司令AIの判断',\n  `**注目情報:** ${topInfo}`,\n  `**優先workflow:** ${priority}`,\n  '',\n  '## 推奨アクション',\n  actions,\n  '',\n  '## 収集データサマリー',\n  '### 重要ニュース',\n  agg.news_summary,\n  '',\n  '### 動画ネタ候補',\n  agg.video_summary,\n  '',\n  `総収集件数: ${agg.total_items}件`\n].join('\\n');\n\nreturn [{\n  json: {\n    date:           agg.date,\n    top_info:       topInfo,\n    priority_wf:    priority,\n    actions:        actions,\n    full_report:    report,\n    total_items:    agg.total_items\n  }\n}];"
+        "jsCode": "const cmdOutput = $input.item.json.output?.[0]?.content?.[0]?.text || '';\nconst agg       = $('結果集約').item.json;\n\nconst get = (label) => {\n  const m = cmdOutput.match(new RegExp(label + '[:：]\\\\s*([\\\\s\\\\S]+?)(?=\\\\n[^\\\\n]+[:：]|$)'));\n  return m ? m[1].trim() : '(取得失敗)';\n};\n\nconst topInfo   = get('注目情報');\nconst priority  = get('優先workflow');\nconst actions   = get('推奨アクション');\n\nconst report = [\n  '# AI帝国 日次司令レポート',\n  `日時: ${agg.date}`,\n  '',\n  '## 司令AIの判断',\n  `**注目情報:** ${topInfo}`,\n  `**優先workflow:** ${priority}`,\n  '',\n  '## 推奨アクション',\n  actions,\n  '',\n  '## 収集データサマリー',\n  '### 重要ニュース',\n  agg.news_summary,\n  '',\n  '### 動画ネタ候補',\n  agg.video_summary,\n  '',\n  `総収集件数: ${agg.total_items}件`\n].join('\\n');\n\nreturn [{\n  json: {\n    date:           agg.date,\n    top_info:       topInfo,\n    priority_wf:    priority,\n    actions:        actions,\n    full_report:    report,\n    total_items:    agg.total_items\n  }\n}];"
       },
       "id": "code-report",
       "name": "Quest 3: 司令レポート生成",

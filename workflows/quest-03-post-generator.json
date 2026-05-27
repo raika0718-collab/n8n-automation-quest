@@ -28,26 +28,26 @@
     },
     {
       "parameters": {
-        "resource": "chat",
-        "operation": "complete",
-        "model": {"__rl": true, "value": "gpt-4o-mini", "mode": "list"},
-        "messages": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
           "values": [
             {
-              "role": "system",
-              "content": "あなたはSNSマーケティングの専門家です。バズる投稿文を生成してください。"
-            },
-            {
-              "role": "user",
-              "content": "以下の動画ネタから、X（Twitter）投稿文を生成してください。\n\n【動画タイトル】{{ $json.video_title }}\n【フック】{{ $json.hook }}\n【概要】{{ $json.summary }}\n【対象】{{ $json.target }}\n\n条件:\n- 140文字以内\n- フックで始める\n- 最後にCTA（「詳しくはプロフから」等）\n- 絵文字を効果的に使用\n\n出力:\nX投稿文: [投稿文]"
+              "content": "=あなたはSNSマーケティングの専門家です。バズる投稿文を生成してください。\n\n以下の動画ネタから、X（Twitter）投稿文を生成してください。\n\n【動画タイトル】{{ $json.video_title }}\n【フック】{{ $json.hook }}\n【概要】{{ $json.summary }}\n【対象】{{ $json.target }}\n\n条件:\n- 140文字以内\n- フックで始める\n- 最後にCTA（「詳しくはプロフから」等）\n- 絵文字を効果的に使用\n\n出力:\nX投稿文: [投稿文]"
             }
           ]
-        }
+        },
+        "builtInTools": {},
+        "options": {}
       },
       "id": "openai-x",
       "name": "Quest 1: X投稿文生成",
-      "type": "n8n-nodes-base.openai",
-      "typeVersion": 1,
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
       "position": [640, 180],
       "credentials": {
         "openAiApi": {
@@ -58,26 +58,26 @@
     },
     {
       "parameters": {
-        "resource": "chat",
-        "operation": "complete",
-        "model": {"__rl": true, "value": "gpt-4o-mini", "mode": "list"},
-        "messages": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
           "values": [
             {
-              "role": "system",
-              "content": "あなたはYouTube SEO専門家です。検索されやすいタイトルと概要欄を生成してください。"
-            },
-            {
-              "role": "user",
-              "content": "以下の動画ネタから、YouTubeのタイトル案3つと概要欄を生成してください。\n\n【動画タイトル】{{ $('Quest 1: 動画ネタ入力').item.json.video_title }}\n【概要】{{ $('Quest 1: 動画ネタ入力').item.json.summary }}\n\n出力形式（必ずこの形式で）:\nYouTubeタイトル1: [タイトル]\nYouTubeタイトル2: [タイトル]\nYouTubeタイトル3: [タイトル]\nYouTube概要欄: [概要欄テキスト（300文字程度）]"
+              "content": "=あなたはYouTube SEO専門家です。検索されやすいタイトルと概要欄を生成してください。\n\n以下の動画ネタから、YouTubeのタイトル案3つと概要欄を生成してください。\n\n【動画タイトル】{{ $('Quest 1: 動画ネタ入力').item.json.video_title }}\n【概要】{{ $('Quest 1: 動画ネタ入力').item.json.summary }}\n\n出力形式（必ずこの形式で）:\nYouTubeタイトル1: [タイトル]\nYouTubeタイトル2: [タイトル]\nYouTubeタイトル3: [タイトル]\nYouTube概要欄: [概要欄テキスト（300文字程度）]"
             }
           ]
-        }
+        },
+        "builtInTools": {},
+        "options": {}
       },
       "id": "openai-yt",
       "name": "Quest 2: YouTubeタイトル生成",
-      "type": "n8n-nodes-base.openai",
-      "typeVersion": 1,
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
       "position": [640, 420],
       "credentials": {
         "openAiApi": {
@@ -88,26 +88,26 @@
     },
     {
       "parameters": {
-        "resource": "chat",
-        "operation": "complete",
-        "model": {"__rl": true, "value": "gpt-4o-mini", "mode": "list"},
-        "messages": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
           "values": [
             {
-              "role": "system",
-              "content": "あなたはハッシュタグ戦略の専門家です。"
-            },
-            {
-              "role": "user",
-              "content": "以下の動画ネタに最適なハッシュタグを生成してください。\n\n【動画タイトル】{{ $('Quest 1: 動画ネタ入力').item.json.video_title }}\n【対象】{{ $('Quest 1: 動画ネタ入力').item.json.target }}\n\n条件:\n- X用: 2〜3個（バズ重視）\n- YouTube用: 5〜7個（SEO重視）\n- TikTok用: 3〜5個（トレンド重視）\n\n出力形式（必ずこの形式で）:\nX用ハッシュタグ: #AI #副業 #自動化\nYouTube用ハッシュタグ: #AI #ChatGPT #副業 #自動化 #n8n\nTikTok用ハッシュタグ: #AIツール #副業 #テック"
+              "content": "=あなたはハッシュタグ戦略の専門家です。\n\n以下の動画ネタに最適なハッシュタグを生成してください。\n\n【動画タイトル】{{ $('Quest 1: 動画ネタ入力').item.json.video_title }}\n【対象】{{ $('Quest 1: 動画ネタ入力').item.json.target }}\n\n条件:\n- X用: 2〜3個（バズ重視）\n- YouTube用: 5〜7個（SEO重視）\n- TikTok用: 3〜5個（トレンド重視）\n\n出力形式（必ずこの形式で）:\nX用ハッシュタグ: #AI #副業 #自動化\nYouTube用ハッシュタグ: #AI #ChatGPT #副業 #自動化 #n8n\nTikTok用ハッシュタグ: #AIツール #副業 #テック"
             }
           ]
-        }
+        },
+        "builtInTools": {},
+        "options": {}
       },
       "id": "openai-hash",
       "name": "Quest 3: ハッシュタグ最適化",
-      "type": "n8n-nodes-base.openai",
-      "typeVersion": 1,
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
       "position": [860, 300],
       "credentials": {
         "openAiApi": {
@@ -118,7 +118,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const topic  = $('Quest 1: 動画ネタ入力').item.json;\nconst xOut   = $('Quest 1: X投稿文生成').item.json.message?.content || '';\nconst ytOut  = $('Quest 2: YouTubeタイトル生成').item.json.message?.content || '';\nconst hashOut = $input.item.json.message?.content || '';\n\nconst get = (text, label) => {\n  const m = text.match(new RegExp(label + '[:：]\\\\s*([\\\\s\\\\S]+?)(?=\\\\n[^\\\\n]+[:：]|$)'));\n  return m ? m[1].trim() : '(取得失敗)';\n};\n\nconst xPost      = get(xOut, 'X投稿文');\nconst ytTitle1   = get(ytOut, 'YouTubeタイトル1');\nconst ytTitle2   = get(ytOut, 'YouTubeタイトル2');\nconst ytTitle3   = get(ytOut, 'YouTubeタイトル3');\nconst ytDesc     = get(ytOut, 'YouTube概要欄');\nconst hashX      = get(hashOut, 'X用ハッシュタグ');\nconst hashYt     = get(hashOut, 'YouTube用ハッシュタグ');\nconst hashTt     = get(hashOut, 'TikTok用ハッシュタグ');\n\nconst markdown = [\n  `# ${topic.video_title}`,\n  '',\n  `> ${topic.hook}`,\n  '',\n  '## X投稿文',\n  xPost,\n  '',\n  '## YouTubeタイトル案',\n  `1. ${ytTitle1}`,\n  `2. ${ytTitle2}`,\n  `3. ${ytTitle3}`,\n  '',\n  '## YouTube概要欄',\n  ytDesc,\n  '',\n  '## ハッシュタグ',\n  `**X用:** ${hashX}`,\n  `**YouTube用:** ${hashYt}`,\n  `**TikTok用:** ${hashTt}`,\n  '',\n  `---`,\n  `生成日時: ${new Date().toISOString()}`\n].join('\\n');\n\nreturn [{\n  json: {\n    date:       new Date().toISOString(),\n    title:      topic.video_title,\n    hook:       topic.hook,\n    x_post:     xPost,\n    yt_title1:  ytTitle1,\n    yt_title2:  ytTitle2,\n    yt_title3:  ytTitle3,\n    yt_desc:    ytDesc,\n    hash_x:     hashX,\n    hash_yt:    hashYt,\n    hash_tiktok: hashTt,\n    markdown:   markdown\n  }\n}];"
+        "jsCode": "const topic  = $('Quest 1: 動画ネタ入力').item.json;\nconst xOut   = $('Quest 1: X投稿文生成').item.json.output?.[0]?.content?.[0]?.text || '';\nconst ytOut  = $('Quest 2: YouTubeタイトル生成').item.json.output?.[0]?.content?.[0]?.text || '';\nconst hashOut = $input.item.json.output?.[0]?.content?.[0]?.text || '';\n\nconst get = (text, label) => {\n  const m = text.match(new RegExp(label + '[:：]\\\\s*([\\\\s\\\\S]+?)(?=\\\\n[^\\\\n]+[:：]|$)'));\n  return m ? m[1].trim() : '(取得失敗)';\n};\n\nconst xPost      = get(xOut, 'X投稿文');\nconst ytTitle1   = get(ytOut, 'YouTubeタイトル1');\nconst ytTitle2   = get(ytOut, 'YouTubeタイトル2');\nconst ytTitle3   = get(ytOut, 'YouTubeタイトル3');\nconst ytDesc     = get(ytOut, 'YouTube概要欄');\nconst hashX      = get(hashOut, 'X用ハッシュタグ');\nconst hashYt     = get(hashOut, 'YouTube用ハッシュタグ');\nconst hashTt     = get(hashOut, 'TikTok用ハッシュタグ');\n\nconst markdown = [\n  `# ${topic.video_title}`,\n  '',\n  `> ${topic.hook}`,\n  '',\n  '## X投稿文',\n  xPost,\n  '',\n  '## YouTubeタイトル案',\n  `1. ${ytTitle1}`,\n  `2. ${ytTitle2}`,\n  `3. ${ytTitle3}`,\n  '',\n  '## YouTube概要欄',\n  ytDesc,\n  '',\n  '## ハッシュタグ',\n  `**X用:** ${hashX}`,\n  `**YouTube用:** ${hashYt}`,\n  `**TikTok用:** ${hashTt}`,\n  '',\n  `---`,\n  `生成日時: ${new Date().toISOString()}`\n].join('\\n');\n\nreturn [{\n  json: {\n    date:       new Date().toISOString(),\n    title:      topic.video_title,\n    hook:       topic.hook,\n    x_post:     xPost,\n    yt_title1:  ytTitle1,\n    yt_title2:  ytTitle2,\n    yt_title3:  ytTitle3,\n    yt_desc:    ytDesc,\n    hash_x:     hashX,\n    hash_yt:    hashYt,\n    hash_tiktok: hashTt,\n    markdown:   markdown\n  }\n}];"
       },
       "id": "code-format",
       "name": "Quest 4: Markdown整形",

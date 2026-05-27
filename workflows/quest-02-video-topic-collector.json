@@ -72,26 +72,26 @@
     },
     {
       "parameters": {
-        "resource": "chat",
-        "operation": "complete",
-        "model": {"__rl": true, "value": "gpt-4o-mini", "mode": "list"},
-        "messages": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
           "values": [
             {
-              "role": "system",
-              "content": "あなたはYouTube Shorts/TikTok専門のコンテンツストラテジストです。"
-            },
-            {
-              "role": "user",
-              "content": "以下のニュース記事とRedditのトレンドから、バズる動画ネタを生成してください。\n\n【記事タイトル】\n{{ $json.article_title }}\n\n【記事概要】\n{{ $json.article_desc }}\n\n【Redditのトレンド話題】\n{{ $json.reddit_trends }}\n\n条件:\n- 3秒フック付き（視聴者が続きを見たくなる一言）\n- 感情を動かす内容\n- 100点満点でバズ可能性を評価\n\n出力形式（必ずこの形式で）:\nタイトル: [動画タイトル]\nフック: [3秒フック]\n概要: [30秒で説明できる動画内容]\nスコア: [数字のみ]"
+              "content": "=あなたはYouTube Shorts/TikTok専門のコンテンツストラテジストです。\n\n以下のニュース記事とRedditのトレンドから、バズる動画ネタを生成してください。\n\n【記事タイトル】\n{{ $json.article_title }}\n\n【記事概要】\n{{ $json.article_desc }}\n\n【Redditのトレンド話題】\n{{ $json.reddit_trends }}\n\n条件:\n- 3秒フック付き（視聴者が続きを見たくなる一言）\n- 感情を動かす内容\n- 100点満点でバズ可能性を評価\n\n出力形式（必ずこの形式で）:\nタイトル: [動画タイトル]\nフック: [3秒フック]\n概要: [30秒で説明できる動画内容]\nスコア: [数字のみ]"
             }
           ]
-        }
+        },
+        "builtInTools": {},
+        "options": {}
       },
       "id": "openai-002",
       "name": "Quest 3: AI動画ネタ化",
-      "type": "n8n-nodes-base.openai",
-      "typeVersion": 1,
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
       "position": [1060, 300],
       "credentials": {
         "openAiApi": {
@@ -102,7 +102,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const output = $input.item.json.message?.content || '';\nconst ctx    = $('コンテキスト構築').item.json;\n\nconst get = (label) => {\n  const m = output.match(new RegExp(label + '[:：]\\\\s*([\\\\s\\\\S]+?)(?=\\\\n[^\\\\n]+[:：]|$)'));\n  return m ? m[1].trim() : '';\n};\n\nreturn [{\n  json: {\n    date:        new Date().toISOString(),\n    video_title: get('タイトル') || '(取得失敗)',\n    hook:        get('フック')   || '(取得失敗)',\n    summary:     get('概要')     || '(取得失敗)',\n    score:       parseInt((output.match(/スコア[:：]\\s*(\\d+)/) || [])[1] || '0', 10),\n    source_url:  ctx.article_url\n  }\n}];"
+        "jsCode": "const output = $input.item.json.output?.[0]?.content?.[0]?.text || '';\nconst ctx    = $('コンテキスト構築').item.json;\n\nconst get = (label) => {\n  const m = output.match(new RegExp(label + '[:：]\\\\s*([\\\\s\\\\S]+?)(?=\\\\n[^\\\\n]+[:：]|$)'));\n  return m ? m[1].trim() : '';\n};\n\nreturn [{\n  json: {\n    date:        new Date().toISOString(),\n    video_title: get('タイトル') || '(取得失敗)',\n    hook:        get('フック')   || '(取得失敗)',\n    summary:     get('概要')     || '(取得失敗)',\n    score:       parseInt((output.match(/スコア[:：]\\s*(\\d+)/) || [])[1] || '0', 10),\n    source_url:  ctx.article_url\n  }\n}];"
       },
       "id": "code-parse-02",
       "name": "AI出力パース",

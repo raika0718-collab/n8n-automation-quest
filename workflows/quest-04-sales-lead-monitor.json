@@ -67,26 +67,26 @@
     },
     {
       "parameters": {
-        "resource": "chat",
-        "operation": "complete",
-        "model": {"__rl": true, "value": "gpt-4o-mini", "mode": "list"},
-        "messages": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
           "values": [
             {
-              "role": "system",
-              "content": "あなたはAI自動化コンサルタントです。企業やサービスのAI化ニーズを分析します。"
-            },
-            {
-              "role": "user",
-              "content": "以下の情報から、この企業/サービス/話題がAI自動化サービスを必要としている可能性を分析してください。\n\n【タイトル】{{ $json.title }}\n【URL】{{ $json.url }}\n【スコア】{{ $json.score }}ポイント\n\n評価基準:\n- 業務効率化の余地があるか\n- データ処理・分析のニーズがありそうか\n- 意思決定支援が役立ちそうか\n- 人手不足や反復作業が多そうか\n\n出力形式（必ずこの形式で）:\n需要スコア: [0〜100の数字]\n理由: [2行以内]\n提案できるAI: [1〜2行]"
+              "content": "=あなたはAI自動化コンサルタントです。企業やサービスのAI化ニーズを分析します。\n\n以下の情報から、この企業/サービス/話題がAI自動化サービスを必要としている可能性を分析してください。\n\n【タイトル】{{ $json.title }}\n【URL】{{ $json.url }}\n【スコア】{{ $json.score }}ポイント\n\n評価基準:\n- 業務効率化の余地があるか\n- データ処理・分析のニーズがありそうか\n- 意思決定支援が役立ちそうか\n- 人手不足や反復作業が多そうか\n\n出力形式（必ずこの形式で）:\n需要スコア: [0〜100の数字]\n理由: [2行以内]\n提案できるAI: [1〜2行]"
             }
           ]
-        }
+        },
+        "builtInTools": {},
+        "options": {}
       },
       "id": "openai-04",
       "name": "Quest 3: AI需要分析",
-      "type": "n8n-nodes-base.openai",
-      "typeVersion": 1,
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
       "position": [1300, 180],
       "credentials": {
         "openAiApi": {
@@ -97,7 +97,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const story  = $('Quest 2: ストーリー詳細取得').item.json;\nconst output = $input.item.json.message?.content || '';\n\nconst scoreMatch  = output.match(/需要スコア[:：]\\s*(\\d+)/);\nconst reasonMatch = output.match(/理由[:：]\\s*([\\s\\S]+?)(?=\\n提案|$)/);\nconst aiMatch     = output.match(/提案できるAI[:：]\\s*([\\s\\S]+)$/);\n\nreturn [{\n  json: {\n    date:         new Date().toISOString(),\n    title:        story.title || '(タイトルなし)',\n    url:          story.url   || `https://news.ycombinator.com/item?id=${story.id}`,\n    hn_score:     story.score || 0,\n    demand_score: parseInt((scoreMatch || [])[1] || '0', 10),\n    reason:       (reasonMatch || [])[1]?.trim() || '(取得失敗)',\n    ai_proposal:  (aiMatch    || [])[1]?.trim() || '(取得失敗)',\n    status:       '未接触'\n  }\n}];"
+        "jsCode": "const story  = $('Quest 2: ストーリー詳細取得').item.json;\nconst output = $input.item.json.output?.[0]?.content?.[0]?.text || '';\n\nconst scoreMatch  = output.match(/需要スコア[:：]\\s*(\\d+)/);\nconst reasonMatch = output.match(/理由[:：]\\s*([\\s\\S]+?)(?=\\n提案|$)/);\nconst aiMatch     = output.match(/提案できるAI[:：]\\s*([\\s\\S]+)$/);\n\nreturn [{\n  json: {\n    date:         new Date().toISOString(),\n    title:        story.title || '(タイトルなし)',\n    url:          story.url   || `https://news.ycombinator.com/item?id=${story.id}`,\n    hn_score:     story.score || 0,\n    demand_score: parseInt((scoreMatch || [])[1] || '0', 10),\n    reason:       (reasonMatch || [])[1]?.trim() || '(取得失敗)',\n    ai_proposal:  (aiMatch    || [])[1]?.trim() || '(取得失敗)',\n    status:       '未接触'\n  }\n}];"
       },
       "id": "code-04",
       "name": "スコア抽出",
