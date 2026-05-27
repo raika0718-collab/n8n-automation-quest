@@ -1,0 +1,176 @@
+{
+  "name": "Quest 01: AI News Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/feed/",
+        "options": {
+          "pollTimes": {
+            "item": [{"mode": "everyX", "value": 15, "unit": "minutes"}]
+          }
+        }
+      },
+      "id": "rss-trigger-001",
+      "name": "Quest 1: RSS接続",
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list"
+        },
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "あなたは情報収集AIアシスタントです。ニュース記事を分析して要約と重要度評価を行います。"
+            },
+            {
+              "role": "user",
+              "content": "以下の記事を3行で要約してください。\nさらに、AI・自動化・テック分野の重要度を100点満点で評価してください。\n\nタイトル: {{ $json.title }}\n内容: {{ $json.contentSnippet }}\n\n出力形式（必ずこの形式で）:\n要約: [3行の要約]\n重要度: [数字のみ]"
+            }
+          ]
+        }
+      },
+      "id": "openai-001",
+      "name": "Quest 2: AI解析",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 1,
+      "position": [420, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// AI出力を解析してスコアと要約を抽出する\nconst aiOutput = $input.item.json.message?.content || '';\nconst rssData = $('Quest 1: RSS接続').item.json;\n\nconst summaryMatch = aiOutput.match(/要約[:：]\\s*([\\s\\S]+?)(?=\\n重要度|$)/);\nconst scoreMatch = aiOutput.match(/重要度[:：]\\s*(\\d+)/);\n\nconst summary = summaryMatch ? summaryMatch[1].trim() : 'AIが要約を生成できませんでした';\nconst score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;\n\nreturn [{\n  json: {\n    date: new Date().toISOString(),\n    title: rssData.title || '(タイトルなし)',\n    summary: summary,\n    score: score,\n    url: rssData.link || rssData.url || '(URLなし)'\n  }\n}];"
+      },
+      "id": "code-001",
+      "name": "AI出力パース",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "AIニュース監視ログ",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.date }}",
+            "Title": "={{ $json.title }}",
+            "Summary": "={{ $json.summary }}",
+            "Score": "={{ $json.score }}",
+            "URL": "={{ $json.url }}"
+          }
+        }
+      },
+      "id": "sheets-001",
+      "name": "Quest 3: Sheets保存",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [860, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-score",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 70,
+              "operator": {"type": "number", "operation": "gte"}
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-001",
+      "name": "重要度チェック (>=70)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1080, 300]
+    },
+    {
+      "parameters": {
+        "webhookUri": "REPLACE_WITH_YOUR_DISCORD_WEBHOOK_URL",
+        "content": "=**【重要ニュース】** スコア: {{ $json.score }}/100\n\n**{{ $json.title }}**\n\n{{ $json.summary }}\n\n{{ $json.url }}",
+        "options": {
+          "username": "AIニュース監視Bot",
+          "allowedMentions": {"parse": []}
+        }
+      },
+      "id": "discord-001",
+      "name": "Quest 4: Discord通知",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [1300, 200]
+    }
+  ],
+  "connections": {
+    "Quest 1: RSS接続": {
+      "main": [
+        [{"node": "Quest 2: AI解析", "type": "main", "index": 0}]
+      ]
+    },
+    "Quest 2: AI解析": {
+      "main": [
+        [{"node": "AI出力パース", "type": "main", "index": 0}]
+      ]
+    },
+    "AI出力パース": {
+      "main": [
+        [{"node": "Quest 3: Sheets保存", "type": "main", "index": 0}]
+      ]
+    },
+    "Quest 3: Sheets保存": {
+      "main": [
+        [{"node": "重要度チェック (>=70)", "type": "main", "index": 0}]
+      ]
+    },
+    "重要度チェック (>=70)": {
+      "main": [
+        [{"node": "Quest 4: Discord通知", "type": "main", "index": 0}],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateId": "automation-quest-01-ai-news-monitor",
+    "instanceId": "template-lab-sample"
+  }
+}

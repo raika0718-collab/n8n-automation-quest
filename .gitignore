@@ -1,0 +1,23 @@
+# 秘密情報
+.env
+*.env
+credentials/
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# サムネ作業用一時ファイル
+assets/thumbnails_wip/
+
+# ログ・実行結果（個人情報を含む可能性）
+*.log
+reports/
