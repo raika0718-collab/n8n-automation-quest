@@ -3,11 +3,9 @@
   "nodes": [
     {
       "parameters": {
-        "url": "https://techcrunch.com/feed/",
-        "options": {
-          "pollTimes": {
-            "item": [{"mode": "everyX", "value": 15, "unit": "minutes"}]
-          }
+        "feedUrl": "https://techcrunch.com/feed/",
+        "pollTimes": {
+          "item": [{"mode": "everyX", "value": 15, "unit": "minutes"}]
         }
       },
       "id": "rss-trigger-001",

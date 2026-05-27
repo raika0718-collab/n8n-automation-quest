@@ -29,7 +29,7 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "REPLACE_WITH_QUEST01_WORKFLOW_ID",
+          "value": "REPLACE_WITH_NEWS_WORKER_WORKFLOW_ID",
           "mode": "id"
         },
         "options": {"waitForSubWorkflow": true}
@@ -44,7 +44,7 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "REPLACE_WITH_QUEST02_WORKFLOW_ID",
+          "value": "REPLACE_WITH_VIDEO_WORKER_WORKFLOW_ID",
           "mode": "id"
         },
         "options": {"waitForSubWorkflow": true}

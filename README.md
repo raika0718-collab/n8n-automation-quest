@@ -52,7 +52,13 @@ RSS取得 → AI要約 → 重要度判定 → Sheets保存 → Discord通知
 ```text
 n8n-automation-quest/
 ├─ workflows/
-│  └─ quest-01-ai-news-monitor.json   ← インポートするファイル
+│  ├─ quest-01-ai-news-monitor.json
+│  ├─ quest-02-video-topic-collector.json
+│  ├─ quest-03-post-generator.json
+│  ├─ quest-04-sales-lead-monitor.json
+│  ├─ quest-05-ai-orchestrator.json
+│  ├─ quest-05-worker-news-analysis.json   ← Quest 05用
+│  └─ quest-05-worker-video-topic.json     ← Quest 05用
 ├─ docs/
 │  ├─ SETUP_GUIDE.md                  ← 事前準備
 │  ├─ IMPORT_GUIDE.md                 ← インポート手順
@@ -74,7 +80,7 @@ n8n-automation-quest/
 | [02](workflows/quest-02-video-topic-collector.json) | AI動画ネタ収集システム | ★★ | HTTP Request / Merge / Reddit API |
 | [03](workflows/quest-03-post-generator.json) | AI投稿生成工場 | ★★★ | 複数AI連鎖 / Markdown生成 |
 | [04](workflows/quest-04-sales-lead-monitor.json) | AI営業リード監視 | ★★★★ | Schedule / HTTP連鎖 / CRM |
-| [05](workflows/quest-05-ai-orchestrator.json) | AI司令システム | ★★★★★ | Execute Workflow / AI Routing |
+| [05](workflows/quest-05-ai-orchestrator.json) | AI司令システム | ★★★★★ | Execute Workflow / 専用Worker / AI Routing |
 
 ---
 

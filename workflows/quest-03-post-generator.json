@@ -88,6 +88,19 @@
     },
     {
       "parameters": {
+        "mode": "chooseBranch",
+        "chooseBranchMode": "waitForAll",
+        "output": "specifiedInput",
+        "useDataOfInput": 1
+      },
+      "id": "merge-content",
+      "name": "投稿生成結果を合流",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
         "modelId": {
           "__rl": true,
           "value": "gpt-4o-mini",
@@ -108,7 +121,7 @@
       "name": "Quest 3: ハッシュタグ最適化",
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 2.1,
-      "position": [860, 300],
+      "position": [1080, 300],
       "credentials": {
         "openAiApi": {
           "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
@@ -124,7 +137,7 @@
       "name": "Quest 4: Markdown整形",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1080, 300]
+      "position": [1300, 300]
     },
     {
       "parameters": {
@@ -148,7 +161,7 @@
       "name": "Quest 4: 量産台帳保存",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.2,
-      "position": [1300, 300],
+      "position": [1520, 300],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
@@ -169,7 +182,7 @@
       "name": "Quest 5: 量産ライン完成",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.3,
-      "position": [1520, 300]
+      "position": [1740, 300]
     }
   ],
   "connections": {
@@ -183,9 +196,12 @@
       ]]
     },
     "Quest 1: X投稿文生成": {
-      "main": [[{"node": "Quest 3: ハッシュタグ最適化", "type": "main", "index": 0}]]
+      "main": [[{"node": "投稿生成結果を合流", "type": "main", "index": 0}]]
     },
     "Quest 2: YouTubeタイトル生成": {
+      "main": [[{"node": "投稿生成結果を合流", "type": "main", "index": 1}]]
+    },
+    "投稿生成結果を合流": {
       "main": [[{"node": "Quest 3: ハッシュタグ最適化", "type": "main", "index": 0}]]
     },
     "Quest 3: ハッシュタグ最適化": {

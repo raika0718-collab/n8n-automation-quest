@@ -14,8 +14,8 @@
 ```
 手動または自動起動
   ↓
-Worker01 (Quest01: ニュースAI) 実行
-Worker02 (Quest02: 動画AI) 実行 ← 並列
+Worker01 (Quest05専用: ニュースWorker) 実行
+Worker02 (Quest05専用: 動画Worker) 実行 ← 並列
   ↓ Merge: 結果統合
 OpenAI: 司令AI (優先度判断)
   ↓
@@ -44,13 +44,14 @@ Sheets: 司令ログ保存
 ### ⚠️ 重要: ワークフローIDの設定
 
 Execute Workflowノードには、呼び出し先のワークフローIDが必要です。
+Quest 01 / Quest 02 本体は定期監視・保存・通知を行うため、司令部からは副作用のない専用 Worker を呼び出します。
 
 **設定手順:**
-1. Quest 01と Quest 02のワークフローをn8nにインポートしてIDを確認する
-2. Quest 01: 左メニュー「Workflows」→ Quest 01を開く → URLのID部分をコピー
-3. Quest 02: 同様にIDをコピー
-4. 「Quest 2: Worker01 起動」ノードをダブルクリック → Workflow IDを入力
-5. 「Quest 2: Worker02 起動」ノードも同様に設定
+1. `quest-05-worker-news-analysis.json` と `quest-05-worker-video-topic.json` をn8nにインポートする
+2. `Quest 05 Worker: News Analysis` を開く → URLのID部分をコピー
+3. `Quest 05 Worker: Video Topic` も同様にIDをコピー
+4. 「Quest 2: Worker01 起動」ノードに News Worker のWorkflow IDを入力
+5. 「Quest 2: Worker02 起動」ノードに Video Worker のWorkflow IDを入力
 
 ### 確認ポイント
 
@@ -111,7 +112,7 @@ Execute Workflowノードで:
 
 **最終クリア条件:**
 
-- [ ] Quest 01と Quest 02が連携して動く
+- [ ] Quest 05 専用 News Worker と Video Worker が連携して動く
 - [ ] 司令AIが「今日の優先行動」を判断できる
 - [ ] Discordに統合レポートが届く
 - [ ] Sheetsに司令ログが蓄積される
@@ -123,11 +124,11 @@ Execute Workflowノードで:
 おめでとうございます。
 
 ```
-Quest 01: AIニュース監視 ← 情報収集
-Quest 02: 動画ネタ収集  ← 企画
+Quest 01: AIニュース監視 ← 単独の定期監視
+Quest 02: 動画ネタ収集  ← 単独の定期企画収集
 Quest 03: 投稿生成工場  ← 制作
 Quest 04: 営業監視      ← 収益
-Quest 05: AI司令システム ← 統括
+Quest 05: AI司令システム ← 専用Workerを使った統括
 ```
 
 これらすべてが自動で連携し、
